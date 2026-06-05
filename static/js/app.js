@@ -1,4 +1,4 @@
-/* StreetGuard AI — app.js  |  4-step workflow */
+/* PawHealth AI — app.js  |  4-step workflow */
 
 // ── refs ──────────────────────────────────────────────────────────────────────
 const dz         = document.getElementById('dz');
@@ -16,27 +16,27 @@ const results    = document.getElementById('results');
 const resetBtn   = document.getElementById('resetBtn');
 
 // Step 2
-const statusEmoji= document.getElementById('statusEmoji');
-const statusBig  = document.getElementById('statusBig');
-const confBadge  = document.getElementById('confBadge');
-const scannedImg = document.getElementById('scannedImg');
-const scanTag    = document.getElementById('scanTag');
-const confPct    = document.getElementById('confPct');
-const confBar    = document.getElementById('confBar');
-const probRows   = document.getElementById('probRows');
-const healthyBox = document.getElementById('healthyBox');
+const statusEmoji = document.getElementById('statusEmoji');
+const statusBig   = document.getElementById('statusBig');
+const confBadge   = document.getElementById('confBadge');
+const scannedImg  = document.getElementById('scannedImg');
+const scanTag     = document.getElementById('scanTag');
+const confPct     = document.getElementById('confPct');
+const confBar     = document.getElementById('confBar');
+const probRows    = document.getElementById('probRows');
+const healthyBox  = document.getElementById('healthyBox');
 
 // Step 3
-const s3          = document.getElementById('s3');
-const urgencyAlert= document.getElementById('urgencyAlert');
-const urgencyIcon = document.getElementById('urgencyIcon');
-const urgencyTxt  = document.getElementById('urgencyTxt');
-const dcName      = document.getElementById('dcName');
-const diffBars    = document.getElementById('diffBars');
-const flagsDiv    = document.getElementById('flags');
-const tabSymptoms = document.getElementById('tab-symptoms');
-const tabCure     = document.getElementById('tab-cure');
-const tabFirstaid = document.getElementById('tab-firstaid');
+const s3           = document.getElementById('s3');
+const urgencyAlert = document.getElementById('urgencyAlert');
+const urgencyIcon  = document.getElementById('urgencyIcon');
+const urgencyTxt   = document.getElementById('urgencyTxt');
+const dcName       = document.getElementById('dcName');
+const diffBars     = document.getElementById('diffBars');
+const flagsDiv     = document.getElementById('flags');
+const tabSymptoms  = document.getElementById('tab-symptoms');
+const tabCure      = document.getElementById('tab-cure');
+const tabFirstaid  = document.getElementById('tab-firstaid');
 
 // Step 4
 const gpsBtn     = document.getElementById('gpsBtn');
@@ -107,21 +107,26 @@ function setLoading(on) {
 function renderResults(data) {
   const infected = data.label === 'infected';
   const cls      = infected ? 'infected' : 'healthy';
-  const emoji    = infected ? '⚠️' : '✅';
-  const tag      = infected ? '⚠ Infected' : '✓ Healthy';
+  const label    = infected ? 'Infected' : 'Healthy';
+  const tagText  = infected ? 'Infected' : 'Healthy';
+  const iconLabel= infected ? 'INF' : 'OK';
 
-  // Step 2
-  statusEmoji.textContent = emoji;
-  statusBig.textContent   = data.label.charAt(0).toUpperCase() + data.label.slice(1);
+  // Status emoji area — text label instead of emoji
+  statusEmoji.textContent = iconLabel;
+  statusEmoji.className   = 'status-emoji ' + (infected ? 'infected-icon' : 'healthy-icon');
+
+  statusBig.textContent   = label;
   statusBig.className     = 'status-big ' + cls;
   confBadge.textContent   = data.confidence + '%';
+
   scannedImg.src          = data.image_url;
-  scanTag.textContent     = tag;
+  scanTag.textContent     = tagText;
   scanTag.className       = 'scan-tag ' + cls;
+
   confPct.textContent     = data.confidence + '%';
   confBar.className       = 'bar-fill ' + cls;
 
-  // Prob rows
+  // Probability rows
   probRows.innerHTML = '';
   for (const [name, pct] of Object.entries(data.probabilities)) {
     const rowCls = name === 'healthy' ? 'healthy' : 'infected';
@@ -152,7 +157,6 @@ function renderResults(data) {
     document.querySelectorAll('.prob-fill').forEach(el => el.style.width = el.dataset.w + '%');
   }, 80));
 
-  // Scroll to results
   results.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -160,8 +164,10 @@ function renderResults(data) {
 function renderDisease(d) {
   // Urgency
   urgencyAlert.className = 'urgency-alert ' + d.urgency;
-  const icons = { critical: '🚨', high: '⚠️', medium: '⚡', low: 'ℹ️' };
-  urgencyIcon.textContent = icons[d.urgency] || '⚠️';
+
+  // Icon labels instead of emojis
+  const iconLabels = { critical: 'CRIT', high: 'HIGH', medium: 'MED', low: 'LOW' };
+  urgencyIcon.textContent = iconLabels[d.urgency] || 'HIGH';
   urgencyTxt.textContent  = d.urgency_label;
 
   // Disease name
@@ -178,14 +184,14 @@ function renderDisease(d) {
       </div>`;
   });
 
-  // Flags
+  // Flags — no emojis, text-based badges
   flagsDiv.innerHTML = '';
   if (d.is_contagious)
-    flagsDiv.innerHTML += `<span class="flag flag-red">⚠ Contagious to other dogs</span>`;
+    flagsDiv.innerHTML += `<span class="flag flag-red">Contagious to other dogs</span>`;
   if (d.zoonotic)
-    flagsDiv.innerHTML += `<span class="flag flag-yellow">⚠ Can spread to humans</span>`;
+    flagsDiv.innerHTML += `<span class="flag flag-yellow">Can spread to humans</span>`;
   if (!d.is_contagious && !d.zoonotic)
-    flagsDiv.innerHTML += `<span class="flag flag-green">✓ Not contagious</span>`;
+    flagsDiv.innerHTML += `<span class="flag flag-green">Not contagious</span>`;
 
   // Tab content
   tabSymptoms.innerHTML = (d.symptoms || []).map(s =>
@@ -207,9 +213,14 @@ function renderDisease(d) {
 document.querySelectorAll('.tab').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+    document.querySelectorAll('.tab-panel').forEach(p => {
+      p.classList.add('hidden');
+      p.classList.remove('active');
+    });
     btn.classList.add('active');
-    document.getElementById('tab-' + btn.dataset.tab).classList.remove('hidden');
+    const panel = document.getElementById('tab-' + btn.dataset.tab);
+    panel.classList.remove('hidden');
+    panel.classList.add('active');
   });
 });
 
@@ -247,25 +258,25 @@ function fetchNgo(payload) {
 }
 
 function renderNgo(data) {
-  const distTxt = data.distance_km != null ? ` (≈${data.distance_km} km away)` : '';
-  ngoCityLbl.textContent = `📍 Showing contacts for: ${data.city}${distTxt}`;
+  const distTxt = data.distance_km != null ? ` — approx. ${data.distance_km} km away` : '';
+  ngoCityLbl.textContent = `Showing contacts for: ${data.city}${distTxt}`;
 
   ngoList.innerHTML = '';
   if (!data.contacts || data.contacts.length === 0) {
     ngoList.innerHTML = '<p style="color:var(--muted2);font-size:.85rem">No specific contacts found for this location.</p>';
   } else {
     data.contacts.forEach(c => {
-      const icon      = c.type === 'clinic' ? '🏥' : '🐾';
+      const iconClass = c.type === 'clinic' ? 'ngo-icon-clinic' : 'ngo-icon-ngo';
       const emClass   = c.emergency ? 'emergency' : '';
-      const emBadge   = c.emergency ? '<span class="em-badge">🚨 Emergency</span>' : '';
+      const emBadge   = c.emergency ? '<span class="em-badge">Emergency</span>' : '';
       ngoList.innerHTML += `
         <div class="ngo-card ${emClass}">
-          <div class="ngo-icon">${icon}</div>
+          <div class="ngo-icon"><span class="${iconClass}"></span></div>
           <div style="flex:1;min-width:0">
             <div class="ngo-name">${c.name}</div>
-            <div class="ngo-addr">📍 ${c.address}</div>
+            <div class="ngo-addr">${c.address}</div>
             <div class="ngo-meta">
-              <a class="ngo-phone" href="tel:${c.phone}">📞 ${c.phone}</a>
+              <a class="ngo-phone" href="tel:${c.phone}">${c.phone}</a>
               <span class="ngo-type-badge ${c.type}">${c.type === 'clinic' ? 'Vet Clinic' : 'NGO'}</span>
               ${emBadge}
             </div>

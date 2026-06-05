@@ -1,16 +1,17 @@
-"""
-app.py — StreetGuard AI Flask Application
-Run: python app.py
-100% offline — no external API required.
-"""
 
-import os, uuid
+
+import os
+import sys
+import uuid
+
+sys.dont_write_bytecode = True
 from flask import Flask, request, render_template, jsonify
 from werkzeug.utils import secure_filename
 from disease_classifier import predict
 from ngo_locator import get_contacts_by_coords, get_contacts_by_city, get_all_cities
 
-UPLOAD_FOLDER  = os.path.join("static", "uploads")
+BASE_DIR       = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_FOLDER  = os.path.join(BASE_DIR, "static", "uploads")
 ALLOWED_EXT    = {"png", "jpg", "jpeg", "webp", "gif"}
 MAX_MB         = 10
 
@@ -38,9 +39,10 @@ def predict_route():
     if not file.filename or not allowed(file.filename):
         return jsonify({"error": "Invalid file"}), 400
 
-    ext      = file.filename.rsplit(".", 1)[1].lower()
+    original = secure_filename(file.filename)
+    ext      = original.rsplit(".", 1)[1].lower()
     fname    = f"{uuid.uuid4().hex}.{ext}"
-    fpath    = os.path.join(UPLOAD_FOLDER, fname)
+    fpath    = os.path.join(app.config["UPLOAD_FOLDER"], fname)
     file.save(fpath)
 
     try:
@@ -78,7 +80,4 @@ def cities_route():
 
 
 if __name__ == "__main__":
-    print("\n🐾 StreetGuard AI — Stray Dog Health Detector")
-    print("   100% offline  |  No API key needed")
-    print("   Open: http://localhost:5000\n")
-    app.run(debug=True, host="0.0.0.0", port=5000)
+   app.run(debug=True, host="0.0.0.0", port=5000, use_reloader=False)

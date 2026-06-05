@@ -3,170 +3,185 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>StreetGuard AI</title>
+  <title>PawHealth AI — Stray Dog Health Detector</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,900;1,600&family=Cabinet+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/css/style.css"/>
 </head>
 <body>
 
-<div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div>
-
 <div class="page">
 
- 
+  <!-- Header -->
   <header>
-    <div class="logo"><span>Paw Health<em>AI</em></span></div>
-    <p class="sub">Offline Stray Dog Health Detection System</p>
+    <div class="logo">
+      <div class="logo-mark"></div>
+      <span class="logo-text">PawHealth<em>AI</em></span>
+    </div>
+    <p class="sub">Stray Dog Health Detection System</p>
   </header>
 
- 
+  <!-- Step 1: Upload -->
   <section class="step-card" id="s1">
-    <div class="step-num"><span>1</span><span class="step-line"></span></div>
-    <div class="step-body">
-      <h2>Take / Upload Photo</h2>
-      <p class="hint">Upload a clear photo of the stray dog. Works best with the full body or affected area visible.</p>
-
-      <div class="dropzone" id="dz">
-        <input type="file" id="fileInput" accept="image/*" hidden/>
-        <div id="dzEmpty">
-          <div class="dz-icon"></div>
-          <p>Drop image here or <span class="link" id="browseBtn">browse files</span></p>
-          <p class="small">JPG or PNG  &nbsp;·&nbsp; max 10 MB</p>
-        </div>
-        <div id="dzFilled" class="hidden">
-          <img id="previewImg" src="" alt="preview"/>
-          <button class="x-btn" id="clearBtn">✕</button>
-        </div>
+    <div class="step-card-inner">
+      <div class="step-num-col">
+        <div class="num-circle">1</div>
+        <div class="step-line"></div>
       </div>
+      <div class="step-body">
+        <h2>Upload Photo</h2>
+        <p class="hint">Upload a clear photo of the stray dog. Works best with the full body or affected area visible. JPG, PNG, WEBP accepted.</p>
 
-      <button class="btn-primary" id="analyseBtn" disabled>
-        <span id="btnTxt">Analyse Dog</span>
-        <span id="btnLoad" class="hidden"><span class="spin"></span> Analysing…</span>
-      </button>
+        <div class="dropzone" id="dz">
+          <input type="file" id="fileInput" accept="image/*" hidden/>
+          <div id="dzEmpty">
+            <div class="dz-icon"><div class="dz-icon-inner"></div></div>
+            <p>Drop image here or <span class="link" id="browseBtn">browse files</span></p>
+            <p class="small">JPG · PNG · WEBP &nbsp;—&nbsp; max 10 MB</p>
+          </div>
+          <div id="dzFilled" class="hidden">
+            <img id="previewImg" src="" alt="preview"/>
+            <button class="x-btn" id="clearBtn">×</button>
+          </div>
+        </div>
+
+        <button class="btn-primary" id="analyseBtn" disabled>
+          <span id="btnTxt">Analyse Dog</span>
+          <span id="btnLoad" class="hidden"><span class="spin"></span>&nbsp;Analysing…</span>
+        </button>
+      </div>
     </div>
   </section>
 
-  
+  <!-- Results -->
   <div id="results" class="hidden">
 
-    
+    <!-- Step 2: Health Status -->
     <section class="step-card" id="s2">
-      <div class="step-num"><span>2</span><span class="step-line"></span></div>
-      <div class="step-body">
-        <h2>Health Status!</h2>
-
-        <div class="status-row" id="statusRow">
-          <div class="status-emoji" id="statusEmoji"></div>
-          <div>
-            <div class="label-sm">Detection Result</div>
-            <div class="status-big" id="statusBig"></div>
-          </div>
-          <div class="conf-badge" id="confBadge"></div>
+      <div class="step-card-inner">
+        <div class="step-num-col">
+          <div class="num-circle">2</div>
+          <div class="step-line"></div>
         </div>
+        <div class="step-body">
+          <h2>Health Status</h2>
 
-        <div class="scanned-img-wrap">
-          <img id="scannedImg" src="" alt="scanned"/>
-          <div class="scan-tag" id="scanTag"></div>
-        </div>
-
-        <div class="conf-block">
-          <div class="conf-meta"><span class="label-sm">Confidence</span><span id="confPct"></span></div>
-          <div class="bar-track"><div class="bar-fill" id="confBar"></div></div>
-          <div class="prob-rows" id="probRows"></div>
-        </div>
-
-        
-        <div class="healthy-box hidden" id="healthyBox">
-          
-          <div>
-            <strong>This dog is healthy.</strong>
-            <p>No visible signs of infection detected!!!</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    
-    <section class="step-card hidden" id="s3">
-      <div class="step-num"><span>3</span><span class="step-line"></span></div>
-      <div class="step-body">
-        <h2>Disease &amp; Treatment</h2>
-
-        
-        <div class="urgency-alert" id="urgencyAlert">
-          
-          <span id="urgencyTxt"></span>
-        </div>
-
-        
-        <div class="disease-card" id="diseaseCard">
-          <div class="dc-tag">Likely Condition</div>
-          <div class="dc-name" id="dcName"></div>
-
-          
-          <div class="diff-title">Differential Diagnosis</div>
-          <div class="diff-bars" id="diffBars"></div>
-        </div>
-
-        
-        <div class="flags" id="flags"></div>
-
-        
-        <div class="tabs">
-          <button class="tab active" data-tab="symptoms">Symptoms</button>
-          <button class="tab" data-tab="cure">Basic Care</button>
-          <button class="tab" data-tab="firstaid">First Aid</button>
-        </div>
-
-        <div class="tab-panel active" id="tab-symptoms"></div>
-        <div class="tab-panel hidden" id="tab-cure"></div>
-        <div class="tab-panel hidden" id="tab-firstaid"></div>
-      </div>
-    </section>
-
-    
-    <section class="step-card" id="s4">
-      <div class="step-num"><span>4</span></div>
-      <div class="step-body">
-        <h2>Nearby NGO &amp; Clinics</h2>
-        <p class="hint">Find the nearest animal welfare organisation or veterinary clinic to get help.</p>
-
-        <div class="location-row">
-          <button class="btn-loc" id="gpsBtn">Use My Location</button>
-          <span class="or-txt">or choose city</span>
-          <select id="citySelect">
-            <option value="">— Select city —</option>
-            {% for c in cities %}
-            <option value="{{ c }}">{{ c.title() }}</option>
-            {% endfor %}
-          </select>
-        </div>
-
-        <div id="ngoResult" class="hidden">
-          <div class="ngo-city-label" id="ngoCityLabel"></div>
-          <div class="ngo-list" id="ngoList"></div>
-          <div class="national-box">
-            
+          <div class="status-row" id="statusRow">
+            <div class="status-emoji" id="statusEmoji"></div>
             <div>
-              <div class="nat-title">National Animal Welfare Helpline</div>
-              <a class="nat-phone" href="tel:18002000167">1800-200-0167</a>
-              
+              <div class="label-sm">Detection Result</div>
+              <div class="status-big" id="statusBig"></div>
+            </div>
+            <div class="conf-badge" id="confBadge"></div>
+          </div>
+
+          <div class="scanned-img-wrap">
+            <img id="scannedImg" src="" alt="scanned"/>
+            <div class="scan-tag" id="scanTag"></div>
+          </div>
+
+          <div class="conf-block">
+            <div class="conf-meta">
+              <span class="label-sm">Confidence Score</span>
+              <span id="confPct"></span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" id="confBar"></div></div>
+            <div class="prob-rows" id="probRows"></div>
+          </div>
+
+          <div class="healthy-box hidden" id="healthyBox">
+            <div class="healthy-icon-box"></div>
+            <div>
+              <strong>This dog appears healthy</strong>
+              <p>No visible signs of infection or disease detected.</p>
             </div>
           </div>
         </div>
+      </div>
+    </section>
 
-        <div id="ngoLoading" class="hidden load-msg">Finding nearest contacts…</div>
-        <div id="ngoError" class="hidden err-msg"></div>
+    <!-- Step 3: Disease & Treatment -->
+    <section class="step-card hidden" id="s3">
+      <div class="step-card-inner">
+        <div class="step-num-col">
+          <div class="num-circle">3</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step-body">
+          <h2>Disease &amp; Treatment</h2>
+
+          <div class="urgency-alert" id="urgencyAlert">
+            <div class="urgency-icon" id="urgencyIcon"></div>
+            <span id="urgencyTxt"></span>
+          </div>
+
+          <div class="disease-card" id="diseaseCard">
+            <div class="dc-tag">Likely Condition</div>
+            <div class="dc-name" id="dcName"></div>
+            <div class="diff-title">Differential Diagnosis</div>
+            <div class="diff-bars" id="diffBars"></div>
+          </div>
+
+          <div class="flags" id="flags"></div>
+
+          <div class="tabs">
+            <button class="tab active" data-tab="symptoms">Symptoms</button>
+            <button class="tab" data-tab="cure">Basic Care</button>
+            <button class="tab" data-tab="firstaid">First Aid</button>
+          </div>
+
+          <div class="tab-panel active" id="tab-symptoms"></div>
+          <div class="tab-panel hidden" id="tab-cure"></div>
+          <div class="tab-panel hidden" id="tab-firstaid"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 4: NGO & Clinics -->
+    <section class="step-card" id="s4">
+      <div class="step-card-inner">
+        <div class="step-num-col">
+          <div class="num-circle">4</div>
+        </div>
+        <div class="step-body">
+          <h2>Nearby NGOs &amp; Clinics</h2>
+          <p class="hint">Find the nearest animal welfare organisation or veterinary clinic to get help for this animal.</p>
+
+          <div class="location-row">
+            <button class="btn-loc" id="gpsBtn">Use My Location</button>
+            <span class="or-txt">or choose city</span>
+            <select id="citySelect">
+              <option value="">— Select city —</option>
+              {% for c in cities %}
+              <option value="{{ c }}">{{ c.title() }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div id="ngoResult" class="hidden">
+            <div class="ngo-city-label" id="ngoCityLabel"></div>
+            <div class="ngo-list" id="ngoList"></div>
+            <div class="national-box">
+              <div class="nat-icon"></div>
+              <div>
+                <div class="nat-title">National Animal Welfare Helpline</div>
+                <a class="nat-phone" href="tel:18002000167">1800-200-0167</a>
+                <div class="nat-sub">Toll-free · Available 24/7</div>
+              </div>
+            </div>
+          </div>
+
+          <div id="ngoLoading" class="hidden load-msg">Finding nearest contacts…</div>
+          <div id="ngoError" class="hidden err-msg"></div>
+        </div>
       </div>
     </section>
 
   </div>
 
-
   <button class="btn-reset hidden" id="resetBtn">Scan Another Dog</button>
 
-  <footer>For animal welfare use </footer> 
+  <footer>For animal welfare use only</footer>
 </div>
 
 <script src="/static/js/app.js"></script>
