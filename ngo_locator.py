@@ -1,10 +1,4 @@
-"""
-ngo_locator.py
---------------
-Offline NGO / vet clinic finder.
-Uses Haversine distance to rank contacts by proximity.
-No external API or internet required.
-"""
+
 
 import json, math, os
 
@@ -19,7 +13,7 @@ def _load_db():
 
 
 def _haversine(lat1, lon1, lat2, lon2) -> float:
-    """Returns distance in km between two lat/lon points."""
+    
     R   = 6371.0
     φ1, φ2 = math.radians(lat1), math.radians(lat2)
     dφ  = math.radians(lat2 - lat1)

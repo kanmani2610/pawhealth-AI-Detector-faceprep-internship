@@ -2,188 +2,182 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>PawHealth AI — Stray Dog Health Detector</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,900;1,600&family=Cabinet+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PawHealth AI — Stray Dog Health Guardian</title>
   <link rel="stylesheet" href="/static/css/style.css"/>
 </head>
 <body>
 
-<div class="page">
+  <!-- ── TOPBAR ── -->
+  <div class="topbar">
+    <span>For animal welfare use — 100% offline</span>
+    <strong>1800-200-0167</strong>
+    <span>National Helpline — 24/7</span>
+  </div>
 
-  <!-- Header -->
-  <header>
-    <div class="logo">
-      <div class="logo-mark"></div>
-      <span class="logo-text">PawHealth<em>AI</em></span>
-    </div>
-    <p class="sub">Stray Dog Health Detection System</p>
-  </header>
+  <!-- ── NAV ── -->
+  <nav>
+    <div class="nav-logo">PawHealth<em>AI</em></div>
+    <ul class="nav-links">
+      <li><a href="#how-it-works">How It Works</a></li>
+      <li><a href="#diseases">Diseases</a></li>
+      <li><a href="#ngo-locator-section">Find NGO</a></li>
+      <li><a href="#about">About</a></li>
+    </ul>
+    <button class="nav-cta">Scan a Dog</button>
+  </nav>
 
-  <!-- Step 1: Upload -->
-  <section class="step-card" id="s1">
-    <div class="step-card-inner">
-      <div class="step-num-col">
-        <div class="num-circle">1</div>
-        <div class="step-line"></div>
+  <!-- ── HERO ── -->
+  <section class="hero" id="how-it-works">
+    <div class="hero-left">
+      <div class="hero-eyebrow">AI-Powered Detection</div>
+      <h1 class="hero-title">Your Stray Dog's<br><em>Health Guardian</em></h1>
+      <p class="hero-sub">Upload a photo and get instant disease detection, treatment guidance, and the nearest rescue contacts — no vet degree needed.</p>
+      <div class="hero-btns">
+        <button class="btn-primary">Analyse Now</button>
+        <button class="btn-ghost">See how it works</button>
       </div>
-      <div class="step-body">
-        <h2>Upload Photo</h2>
-        <p class="hint">Upload a clear photo of the stray dog. Works best with the full body or affected area visible. JPG, PNG, WEBP accepted.</p>
-
-        <div class="dropzone" id="dz">
-          <input type="file" id="fileInput" accept="image/*" hidden/>
-          <div id="dzEmpty">
-            <div class="dz-icon"><div class="dz-icon-inner"></div></div>
-            <p>Drop image here or <span class="link" id="browseBtn">browse files</span></p>
-            <p class="small">JPG · PNG · WEBP &nbsp;—&nbsp; max 10 MB</p>
-          </div>
-          <div id="dzFilled" class="hidden">
-            <img id="previewImg" src="" alt="preview"/>
-            <button class="x-btn" id="clearBtn">×</button>
-          </div>
-        </div>
-
-        <button class="btn-primary" id="analyseBtn" disabled>
-          <span id="btnTxt">Analyse Dog</span>
-          <span id="btnLoad" class="hidden"><span class="spin"></span>&nbsp;Analysing…</span>
-        </button>
+    </div>
+    <div class="hero-right">
+      <div class="hero-img-wrap">
+        <img src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=900&q=80" alt="Stray dog"/>
+      </div>
+      <div class="hero-badge">
+        <div class="badge-num">98%</div>
+        <div class="badge-lbl">Detection Accuracy</div>
       </div>
     </div>
   </section>
 
-  <!-- Results -->
-  <div id="results" class="hidden">
-
-    <!-- Step 2: Health Status -->
-    <section class="step-card" id="s2">
-      <div class="step-card-inner">
-        <div class="step-num-col">
-          <div class="num-circle">2</div>
-          <div class="step-line"></div>
-        </div>
-        <div class="step-body">
-          <h2>Health Status</h2>
-
-          <div class="status-row" id="statusRow">
-            <div class="status-emoji" id="statusEmoji"></div>
-            <div>
-              <div class="label-sm">Detection Result</div>
-              <div class="status-big" id="statusBig"></div>
-            </div>
-            <div class="conf-badge" id="confBadge"></div>
-          </div>
-
-          <div class="scanned-img-wrap">
-            <img id="scannedImg" src="" alt="scanned"/>
-            <div class="scan-tag" id="scanTag"></div>
-          </div>
-
-          <div class="conf-block">
-            <div class="conf-meta">
-              <span class="label-sm">Confidence Score</span>
-              <span id="confPct"></span>
-            </div>
-            <div class="bar-track"><div class="bar-fill" id="confBar"></div></div>
-            <div class="prob-rows" id="probRows"></div>
-          </div>
-
-          <div class="healthy-box hidden" id="healthyBox">
-            <div class="healthy-icon-box"></div>
-            <div>
-              <strong>This dog appears healthy</strong>
-              <p>No visible signs of infection or disease detected.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Step 3: Disease & Treatment -->
-    <section class="step-card hidden" id="s3">
-      <div class="step-card-inner">
-        <div class="step-num-col">
-          <div class="num-circle">3</div>
-          <div class="step-line"></div>
-        </div>
-        <div class="step-body">
-          <h2>Disease &amp; Treatment</h2>
-
-          <div class="urgency-alert" id="urgencyAlert">
-            <div class="urgency-icon" id="urgencyIcon"></div>
-            <span id="urgencyTxt"></span>
-          </div>
-
-          <div class="disease-card" id="diseaseCard">
-            <div class="dc-tag">Likely Condition</div>
-            <div class="dc-name" id="dcName"></div>
-            <div class="diff-title">Differential Diagnosis</div>
-            <div class="diff-bars" id="diffBars"></div>
-          </div>
-
-          <div class="flags" id="flags"></div>
-
-          <div class="tabs">
-            <button class="tab active" data-tab="symptoms">Symptoms</button>
-            <button class="tab" data-tab="cure">Basic Care</button>
-            <button class="tab" data-tab="firstaid">First Aid</button>
-          </div>
-
-          <div class="tab-panel active" id="tab-symptoms"></div>
-          <div class="tab-panel hidden" id="tab-cure"></div>
-          <div class="tab-panel hidden" id="tab-firstaid"></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Step 4: NGO & Clinics -->
-    <section class="step-card" id="s4">
-      <div class="step-card-inner">
-        <div class="step-num-col">
-          <div class="num-circle">4</div>
-        </div>
-        <div class="step-body">
-          <h2>Nearby NGOs &amp; Clinics</h2>
-          <p class="hint">Find the nearest animal welfare organisation or veterinary clinic to get help for this animal.</p>
-
-          <div class="location-row">
-            <button class="btn-loc" id="gpsBtn">Use My Location</button>
-            <span class="or-txt">or choose city</span>
-            <select id="citySelect">
-              <option value="">— Select city —</option>
-              {% for c in cities %}
-              <option value="{{ c }}">{{ c.title() }}</option>
-              {% endfor %}
-            </select>
-          </div>
-
-          <div id="ngoResult" class="hidden">
-            <div class="ngo-city-label" id="ngoCityLabel"></div>
-            <div class="ngo-list" id="ngoList"></div>
-            <div class="national-box">
-              <div class="nat-icon"></div>
-              <div>
-                <div class="nat-title">National Animal Welfare Helpline</div>
-                <a class="nat-phone" href="tel:18002000167">1800-200-0167</a>
-                <div class="nat-sub">Toll-free · Available 24/7</div>
-              </div>
-            </div>
-          </div>
-
-          <div id="ngoLoading" class="hidden load-msg">Finding nearest contacts…</div>
-          <div id="ngoError" class="hidden err-msg"></div>
-        </div>
-      </div>
-    </section>
-
+  <!-- ── STATS STRIP ── -->
+  <div class="stats-strip">
+    <div class="stat">
+      <div class="stat-num">8+</div>
+      <div class="stat-lbl">Diseases Detected</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">100%</div>
+      <div class="stat-lbl">Free to use</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">50+</div>
+      <div class="stat-lbl">Cities Covered</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">24/7</div>
+      <div class="stat-lbl">Helpline Available</div>
+    </div>
   </div>
 
-  <button class="btn-reset hidden" id="resetBtn">Scan Another Dog</button>
+  <!-- ── ABOUT ── -->
+  <section class="about" id="about">
+    <div class="about-img">
+      <img src="https://images.unsplash.com/photo-1518155317743-a8ff43ea6a5f?w=800&q=80" alt="Dog care"/>
+    </div>
+    <div class="about-content">
+      <div class="section-label">What We Do</div>
+      <h2 class="about-title">Detect. Diagnose.<br><em>Connect to Help.</em></h2>
+      <p class="about-text">StreetGuard AI uses a MobileNetV3 model trained on thousands of stray dog images to classify health status in seconds. Infected dogs get a full disease breakdown and first-aid guide.</p>
+      <ul class="about-list">
+        <li>Instant healthy vs infected classification</li>
+        <li>Disease name, symptoms and urgency rating</li>
+        <li>Step-by-step first aid and treatment guide</li>
+        <li>Nearest NGOs and vet clinics by GPS or city</li>
+      </ul>
+      <button class="btn-outline">Upload a Photo</button>
+    </div>
+  </section>
 
-  <footer>For animal welfare use only</footer>
-</div>
+  <!-- ── SERVICES ── -->
+  <section class="services" id="diseases">
+    <div class="section-center-label">Core Features</div>
+    <h2 class="section-title">Everything You Need</h2>
+    <p class="section-sub">From photo upload to rescue contact</p>
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon"><div class="card-icon-inner"></div></div>
+        <div class="card-title">Disease Classifier</div>
+        <p class="card-text">MobileNetV3 binary model detects mange, distemper, parvovirus, skin infections, tick infestations, and more from a single photo.</p>
+        <a class="card-link" href="#">Learn more</a>
+      </div>
+      <div class="card">
+        <div class="card-icon"><div class="card-icon-inner" style="border-radius:3px"></div></div>
+        <div class="card-title">Treatment Guide</div>
+        <p class="card-text">Every detected condition comes with an urgency rating, symptom list, and step-by-step first-aid guide written in plain language.</p>
+        <a class="card-link" href="#">Learn more</a>
+      </div>
+      <div class="card">
+        <div class="card-icon"><div class="card-icon-inner" style="border-radius:2px;width:18px;height:14px"></div></div>
+        <div class="card-title">NGO Locator</div>
+        <p class="card-text">Haversine-based offline locator finds the nearest animal welfare NGO or vet clinic using GPS coordinates or city selection.</p>
+        <a class="card-link" href="#ngo-locator-section">Find NGOs →</a>
+      </div>
+    </div>
+  </section>
 
-<script src="/static/js/app.js"></script>
+  <!-- ── SPLIT CTA ── -->
+  <div class="split-cta" id="ngo">
+    <div class="cta-block dark">
+      <div class="cta-label">For Rescuers</div>
+      <h3 class="cta-title">Spot illness before it spreads</h3>
+      <p class="cta-text">Early detection saves lives. Scan any stray dog you encounter and know exactly what to do — even without a vet nearby.</p>
+      <button class="btn-white">Start Scanning</button>
+    </div>
+    <div class="cta-block light">
+      <div class="cta-label">For NGOs</div>
+      <h3 class="cta-title" style="color:var(--rose-deep)">Get listed in our directory</h3>
+      <p class="cta-text" style="color:var(--text2)">Animal welfare organisations and vet clinics can be added to the offline contact database to help rescuers find you instantly.</p>
+      <button class="btn-pink">Contact Us</button>
+    </div>
+  </div>
+
+  <!-- ── REPORT CARD (shown after scan) ── -->
+  <section id="report-card" class="report-card" style="display:none;">
+    <div class="report-container">
+      <h2>PawHealth AI Report</h2>
+      <div id="report-content"></div>
+    </div>
+  </section>
+
+  <!-- ── NGO LOCATOR ── -->
+  <section id="ngo-locator-section" class="ngo-locator-section">
+    <div class="ngo-locator-inner">
+
+      <div class="section-center-label">Rescue Directory</div>
+      <h2 class="section-title">Find NGOs &amp; Vet Clinics</h2>
+      <p class="section-sub">Search by city name or use your GPS to find the nearest animal welfare organisations and vet clinics.</p>
+
+      <!-- Search controls -->
+      <div class="ngo-search-box">
+        <div class="ngo-search-row">
+          <input
+            type="text"
+            id="ngo-city-input"
+            class="ngo-city-input"
+            placeholder="Enter city name e.g. Chennai, Mumbai…"
+            autocomplete="off"
+          />
+          <button class="btn-ngo-search" onclick="findByCity()">Search</button>
+        </div>
+        <div class="ngo-divider"><span>or</span></div>
+        <button class="btn-ngo-gps" onclick="findByGPS()">
+          &#128205;&nbsp; Use My Location (GPS)
+        </button>
+      </div>
+
+      <!-- Results area -->
+      <div id="ngo-results" class="ngo-results"></div>
+
+    </div>
+  </section>
+
+  <!-- ── FOOTER ── -->
+  <footer>
+    <span>PawHealth AI</span>
+    <div>For animal welfare use only</div>
+    <div>Built with care by kanmani</div>
+  </footer>
+
+  <script src="/static/js/app.js"></script>
 </body>
 </html>
