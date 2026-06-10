@@ -1,5 +1,3 @@
-
-
 import os
 import sys
 import uuid
@@ -67,7 +65,10 @@ def ngo_route():
         except Exception as e:
             return jsonify({"error": str(e)}), 500
     elif city:
-        result = get_contacts_by_city(city)
+        try:
+            result = get_contacts_by_city(city)
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
     else:
         return jsonify({"error": "Provide lat/lon or city"}), 400
 
@@ -79,5 +80,6 @@ def cities_route():
     return jsonify(get_all_cities())
 
 
+
 if __name__ == "__main__":
-   app.run(debug=True, host="0.0.0.0", port=5000, use_reloader=False)
+    app.run(debug=True, host="0.0.0.0", port=5000, use_reloader=False)

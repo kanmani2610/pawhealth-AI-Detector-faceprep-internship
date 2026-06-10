@@ -253,12 +253,12 @@ DISEASE_KB = {
             "Skin may appear grey or yellowish"
         ],
         "basic_cure": [
-            "Bathe with medicated anti-mange shampoo (benzyl benzoate/sulphur-based)",
-            "Apply ivermectin or selamectin — only under vet supervision",
-            "Inject ivermectin 0.2 mg/kg subcutaneously (vet only)",
-            "Use neem oil diluted in coconut oil as interim topical relief",
-            "Repeat treatment weekly for 4–6 weeks minimum",
-            "Provide high-protein food to help skin regeneration"
+            "Oral isoxazoline (fluralaner/afoxolaner/sarolaner) — vet prescription, given monthly; now first-line treatment",
+            "Topical spot-on: imidacloprid 10% + moxidectin 2.5% (Advocate) OR selamectin 12% — vet prescription",
+            "Lime sulfur dip twice weekly for accessible lesions — dilute 1:16 with water",
+            "Medicated shampoo: miconazole 2% + chlorhexidine 2% — bath twice weekly",
+            "Confirm cure with vet skin scraping after minimum 4 weeks of treatment",
+            "Provide high-protein diet to support skin regeneration"
         ],
         "home_first_aid": [
             "Wear gloves — sarcoptic mange CAN transfer to humans",
@@ -280,11 +280,11 @@ DISEASE_KB = {
             "Broken hair stubs at edges of patches"
         ],
         "basic_cure": [
-            "Apply antifungal cream (miconazole/clotrimazole) twice daily",
-            "Oral antifungal (griseofulvin / itraconazole) — vet prescription",
-            "Shampoo with antifungal wash (selenium sulphide/ketoconazole) weekly",
-            "Clip fur around lesions to improve air circulation",
-            "Continue treatment for minimum 4 weeks after visible recovery"
+            "Apply antifungal cream (miconazole 2% / clotrimazole) twice daily to lesions",
+            "Oral antifungal (itraconazole preferred over griseofulvin; terbinafine also used) — vet prescription",
+            "Antifungal shampoo (miconazole + chlorhexidine) twice weekly — leave on 5–10 min before rinsing",
+            "Clip fur around lesions to improve airflow and topical penetration",
+            "Continue treatment minimum 6 weeks; severe cases may require longer — confirm cure with vet"
         ],
         "home_first_aid": [
             "Wash hands thoroughly — ringworm is contagious to humans",
@@ -332,7 +332,7 @@ DISEASE_KB = {
             "Pale or yellow gums"
         ],
         "basic_cure": [
-            "EMERGENCY VET CARE REQUIRED — 80% fatal if untreated",
+            "EMERGENCY VET CARE REQUIRED — >90% fatal without IV fluids; survival rate 68–90% with prompt hospitalised treatment",
             "IV fluid therapy to correct dehydration and electrolyte loss",
             "IV antibiotics (ampicillin/enrofloxacin)",
             "Anti-nausea medication (ondansetron/maropitant)",
@@ -384,18 +384,18 @@ DISEASE_KB = {
             "Signs of pain when touched"
         ],
         "basic_cure": [
-            "Clean wound gently with saline solution or clean water",
-            "Apply antiseptic (betadine/povidone iodine diluted 1:10)",
-            "Bandage loosely to prevent contamination",
-            "Antibiotics if wound appears infected (amoxicillin — vet only)",
-            "Tetanus prophylaxis may be required",
-            "Monitor for signs of infection: heat, pus, odour"
+            "Irrigate wound immediately with sterile saline or clean tap water — use a 20 mL syringe for pressure flushing",
+            "Do NOT use betadine/hydrogen peroxide on open wounds — delays healing; saline only",
+            "Bandage loosely with non-stick dressing — change daily",
+            "Antibiotics if wound infected: amoxicillin-clavulanate (Clavamox) or cephalexin — vet prescription",
+            "Tetanus prophylaxis may be required for deep puncture wounds",
+            "Monitor daily for signs of infection: heat, pus, swelling, odour"
         ],
         "home_first_aid": [
             "Apply gentle pressure with clean cloth to stop bleeding",
-            "Do NOT apply human antiseptic creams (contain xylitol/harmful agents)",
-            "Prevent the dog from licking the wound",
-            "Keep the dog calm and still until help arrives"
+            "Rinse with clean running water only — do NOT apply betadine, hydrogen peroxide, or human antiseptic creams",
+            "Prevent the dog from licking the wound — improvise a collar if needed",
+            "Keep the dog calm and still until vet help arrives"
         ],
         "is_contagious": False,
         "zoonotic": False
@@ -411,11 +411,12 @@ DISEASE_KB = {
             "Pawing at eyes"
         ],
         "basic_cure": [
-            "Wipe discharge gently with saline-soaked cotton",
-            "Antibiotic eye drops (chloramphenicol / tobramycin) — vet prescribed",
-            "Anti-inflammatory drops if swelling is severe",
-            "E-collar (cone) to prevent rubbing",
-            "Rule out underlying cause: distemper, entropion, foreign body"
+            "Rinse eyes 1–2× daily with sterile eye irrigation solution (saline) — most cases resolve with this alone",
+            "Apply lubricating eye gel (hypromellose) before walks as a protective barrier",
+            "E-collar (cone) to prevent the dog rubbing its eyes",
+            "Vet may prescribe topical antihistamine (ketotifen) if allergic origin is suspected",
+            "Antibiotic eye drops (chloramphenicol/tobramycin) ONLY if bacterial infection is confirmed by vet — not routine first-line",
+            "Rule out underlying cause: distemper, entropion, foreign body, dry eye (KCS)"
         ],
         "home_first_aid": [
             "Use clean cotton dipped in cooled boiled water to wipe discharge",
