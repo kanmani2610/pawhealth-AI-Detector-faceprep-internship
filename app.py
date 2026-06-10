@@ -40,6 +40,8 @@ def save_uploaded_image(file):
     try:
         img = Image.open(file.stream)
         img = ImageOps.exif_transpose(img).convert("RGB")
+
+        img.thumbnail((1024, 1024))
     except UnidentifiedImageError:
         raise ValueError("Could not read this image. Try JPG, PNG, WEBP, HEIC, BMP or TIFF.")
 
