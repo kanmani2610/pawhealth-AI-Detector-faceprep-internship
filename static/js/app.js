@@ -1,5 +1,3 @@
-
-
 document.addEventListener('DOMContentLoaded', () => {
 
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -109,7 +107,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const reportContent = document.getElementById('report-content');
     if (reportSection) {
       reportSection.style.display = 'block';
-      const dogImage = window.lastUploadedDogImage || '';
       reportContent.innerHTML = `
         <div class="report-loading">
           <div class="spinner"></div>
@@ -123,16 +120,50 @@ document.addEventListener('DOMContentLoaded', () => {
       const formData = new FormData();
       formData.append('file', uploadFile, uploadFile.name || 'dog-photo.jpg');
 
-      const response = await fetch('/predict', {
-        method: 'POST',
-        body: formData
-      });
+      // FIX 1: AbortController timeout — mobile networks can be slow.
+      // Without this the fetch hangs forever on a bad connection.
+      const controller = new AbortController();
+      const timeoutId  = setTimeout(() => controller.abort(), 60000); // 60 s
+
+      let response;
+      try {
+        response = await fetch('/predict', {
+          method: 'POST',
+          body: formData,
+          signal: controller.signal,
+        });
+      } catch (fetchErr) {
+        clearTimeout(timeoutId);
+        // AbortError = our timeout; TypeError = network gone
+        const msg = fetchErr.name === 'AbortError'
+          ? 'Request timed out. Please check your connection and try again.'
+          : 'Network error — make sure your device can reach the server.';
+        if (reportContent) {
+          reportContent.innerHTML = `<div class="report-error">Error: ${msg}</div>`;
+        }
+        showToast('Error: ' + msg);
+        input.value = '';
+        return;
+      }
+      clearTimeout(timeoutId);
 
       let data = {};
       try {
-        data = await response.json();
+        // FIX 2: read the raw text first; if it's not valid JSON we surface
+        // the actual HTTP status instead of a confusing "could not read" error.
+        const raw = await response.text();
+        data = JSON.parse(raw);
       } catch (err) {
-        data = { error: response.status === 413 ? 'Image is too large. Please try a smaller photo.' : 'Server could not read the response.' };
+        let msg = 'Server could not read the response.';
+        if (response.status === 413) msg = 'Image is too large. Please try a smaller photo.';
+        else if (response.status === 500) msg = 'Server error during analysis. Try again.';
+        else if (response.status === 400) msg = 'Invalid image file. Please try a different photo.';
+        if (reportContent) {
+          reportContent.innerHTML = `<div class="report-error">Error: ${msg}</div>`;
+        }
+        showToast('Error: ' + msg);
+        input.value = '';
+        return;
       }
 
       if (!response.ok || data.error) {
@@ -141,6 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
           reportContent.innerHTML = `<div class="report-error">Error: ${message}</div>`;
         }
         showToast('Error: ' + message);
+        input.value = '';
         return;
       }
 
@@ -151,42 +183,48 @@ document.addEventListener('DOMContentLoaded', () => {
       if (reportContent) {
         reportContent.innerHTML = `<div class="report-error">Analysis failed. Please try again.</div>`;
       }
-      showToast('Analysis failed');
+      showToast('Analysis failed — please try again');
     }
 
     input.value = '';
   }
 
+  // FIX 3: prepareImageForUpload — also resize HEIC/HEIF on mobile by
+  // converting them through a canvas after the browser decodes them.
+  // Previously HEIC files were sent raw (potentially 10–15 MB) and Flask
+  // would time out or the mobile network would drop the upload.
   function prepareImageForUpload(file) {
-    const canResize = file.type.startsWith('image/') && !/heic|heif/i.test(file.type);
-    if (!canResize || file.size <= 4 * 1024 * 1024) {
+    const MAX_SIDE = 1200;
+    const MAX_BYTES = 3 * 1024 * 1024; // 3 MB threshold before we bother resizing
+
+    // Always convert HEIC/HEIF via canvas — mobile Safari can decode them
+    // but the raw file bytes are huge and unsupported by many servers.
+    const isHEIC = /heic|heif/i.test(file.type) || /heic|heif/i.test(file.name);
+
+    if (!isHEIC && file.size <= MAX_BYTES) {
       return Promise.resolve(file);
     }
 
     return new Promise(resolve => {
-      const img = new Image();
+      const img = new window.Image();
       const objectUrl = URL.createObjectURL(file);
 
       img.onload = () => {
         URL.revokeObjectURL(objectUrl);
-        const maxSide = 1600;
-        const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+        const scale = Math.min(1, MAX_SIDE / Math.max(img.width, img.height));
         const canvas = document.createElement('canvas');
-        canvas.width = Math.max(1, Math.round(img.width * scale));
+        canvas.width  = Math.max(1, Math.round(img.width  * scale));
         canvas.height = Math.max(1, Math.round(img.height * scale));
         canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
         canvas.toBlob(blob => {
-          if (!blob) {
-            resolve(file);
-            return;
-          }
+          if (!blob) { resolve(file); return; }
           resolve(new File([blob], 'dog-photo.jpg', { type: 'image/jpeg' }));
-        }, 'image/jpeg', 0.88);
+        }, 'image/jpeg', 0.85);
       };
 
       img.onerror = () => {
         URL.revokeObjectURL(objectUrl);
-        resolve(file);
+        resolve(file); // best effort fallback
       };
 
       img.src = objectUrl;
@@ -265,17 +303,33 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       ngoGpsBtn.textContent = 'Locating…';
       ngoGpsBtn.disabled = true;
+
+      // FIX 4: geolocation options — mobile browsers often fail silently
+      // without a timeout. enableHighAccuracy can also block forever on mobile.
+      const geoOptions = {
+        enableHighAccuracy: false,  // false = faster on mobile (uses cell/wifi)
+        timeout: 10000,             // 10 s — surface error instead of hanging
+        maximumAge: 60000,          // accept a cached position up to 1 min old
+      };
+
       navigator.geolocation.getCurrentPosition(
         pos => {
           ngoGpsBtn.textContent = 'Use My Location';
           ngoGpsBtn.disabled = false;
           fetchNGO({ lat: pos.coords.latitude, lon: pos.coords.longitude });
         },
-        () => {
+        err => {
           ngoGpsBtn.textContent = 'Use My Location';
           ngoGpsBtn.disabled = false;
-          showToast('Location access denied');
-        }
+          // FIX 5: map the numeric error code to a readable message
+          const geoErrors = {
+            1: 'Location access denied. Please allow location in browser settings.',
+            2: 'Location unavailable. Try entering your city name instead.',
+            3: 'Location timed out. Try entering your city name instead.',
+          };
+          showToast(geoErrors[err.code] || 'Could not get location.');
+        },
+        geoOptions
       );
     });
   }
@@ -304,7 +358,10 @@ document.addEventListener('DOMContentLoaded', () => {
       zIndex: '9999',
       opacity: '0',
       transition: 'opacity .3s ease, transform .3s ease',
-      whiteSpace: 'nowrap',
+      // FIX 6: allow toast text to wrap on narrow mobile screens
+      whiteSpace: 'normal',
+      maxWidth: '90vw',
+      textAlign: 'center',
     });
 
     document.body.appendChild(toast);
@@ -353,17 +410,41 @@ closeBtn?.addEventListener('click', () => {
         <p>Finding nearby vets &amp; NGOs…</p>
       </div>`;
 
+    // FIX 7: AbortController for NGO fetch — Overpass API calls can take
+    // 8-12 seconds on a good connection. On mobile they often just hang.
+    // We give it 30 seconds then fall back with a clear message.
+    const controller = new AbortController();
+    const timeoutId  = setTimeout(() => controller.abort(), 30000);
+
     try {
-      const res  = await fetch('/ngo', {
+      const res = await fetch('/ngo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(params)
+        body: JSON.stringify(params),
+        signal: controller.signal,
       });
-      const data = await res.json();
+      clearTimeout(timeoutId);
+
+      let data;
+      try {
+        data = await res.json();
+      } catch (parseErr) {
+        ngoResults.innerHTML = `<div class="ngo-error">Server returned an invalid response. Please try again.</div>`;
+        return;
+      }
+
+      if (!res.ok) {
+        ngoResults.innerHTML = `<div class="ngo-error">${data.error || 'Could not load NGO data. Please try again.'}</div>`;
+        return;
+      }
+
       renderNGOResults(data);
     } catch (err) {
-      console.error(err);
-      ngoResults.innerHTML = `<div class="ngo-error">Could not load NGO data. Please try again.</div>`;
+      clearTimeout(timeoutId);
+      const msg = err.name === 'AbortError'
+        ? 'Request timed out. Try entering your city name instead.'
+        : 'Could not load NGO data. Check your connection and try again.';
+      ngoResults.innerHTML = `<div class="ngo-error">${msg}</div>`;
     }
   }
 
