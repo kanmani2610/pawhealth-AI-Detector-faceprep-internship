@@ -142,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // FIX 1: AbortController timeout — mobile networks can be slow.
       // Without this the fetch hangs forever on a bad connection.
       const controller = new AbortController();
-      const timeoutId  = setTimeout(() => controller.abort(), 60000); // 60 s
+      const timeoutId  = setTimeout(() => controller.abort(), 120000); // 120 s — mobile uploads are slow
 
       let response;
       try {
@@ -172,7 +172,8 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (err) {
         let msg = err.message || 'Could not read analysis result.';
         if (response.status === 413) msg = 'Image is too large. Please try a smaller photo.';
-        else if (response.status === 500) msg = 'Server error during analysis. Try again.';
+        else if (response.status === 502 || response.status === 504) msg = "Server took too long — please try a smaller photo or wait a moment and retry.";
+        else if (response.status === 500) msg = "Server error during analysis. Try again."
         else if (response.status === 400) msg = 'Invalid image file. Please try a different photo.';
         if (reportContent) {
           reportContent.innerHTML = `<div class="report-error">Error: ${msg}</div>`;

@@ -19,7 +19,6 @@ except Exception:
 BASE_DIR       = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLDER  = os.path.join(BASE_DIR, "static", "uploads")
 ALLOWED_EXT    = {"png", "jpg", "jpeg", "jfif", "webp", "gif", "bmp", "tif", "tiff", "heic", "heif"}
-# FIX: raised from 25 MB to 30 MB — mobile cameras (especially HEIC) can hit 20+ MB
 MAX_MB         = 30
 
 app = Flask(__name__)
@@ -27,13 +26,16 @@ app.config["UPLOAD_FOLDER"]      = UPLOAD_FOLDER
 app.config["MAX_CONTENT_LENGTH"] = MAX_MB * 1024 * 1024
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# FIX: Add CORS-friendly headers + no-cache so mobile browsers don't serve
-# a stale cached response as "server could not read the response"
+
 @app.after_request
 def add_headers(response):
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     response.headers["Pragma"]        = "no-cache"
     response.headers["X-Content-Type-Options"] = "nosniff"
+    # FIX: allow mobile browsers (different origin on LAN) to reach the API
+    response.headers["Access-Control-Allow-Origin"]  = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
     return response
 
 
@@ -63,8 +65,6 @@ def save_uploaded_image(file):
     try:
         img = Image.open(file.stream)
         img = ImageOps.exif_transpose(img).convert("RGB")
-        # FIX: cap at 1024×1024 — same as before but also strip all EXIF/metadata
-        # which can cause PIL to barf on some Samsung/Xiaomi HEIC files
         img.thumbnail((1024, 1024))
     except UnidentifiedImageError:
         raise ValueError("Could not read this image. Try JPG, PNG, WEBP, HEIC, BMP or TIFF.")
@@ -83,8 +83,12 @@ def index():
     return render_template("index.html", cities=cities)
 
 
-@app.route("/predict", methods=["POST"])
+@app.route("/predict", methods=["POST", "OPTIONS"])
 def predict_route():
+    # FIX: handle preflight CORS requests from mobile browsers
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
+
     if "file" not in request.files:
         return jsonify({"error": "No file uploaded"}), 400
     file = request.files["file"]
@@ -103,11 +107,19 @@ def predict_route():
         return jsonify({"error": "Analysis failed. Please try another image."}), 500
 
     result["image_url"] = f"/static/uploads/{fname}"
-    return jsonify(result)
+    # FIX: force Content-Type so mobile browsers never misparse the response
+    return app.response_class(
+        response=__import__('json').dumps(result),
+        status=200,
+        mimetype='application/json'
+    )
 
 
-@app.route("/ngo", methods=["POST"])
+@app.route("/ngo", methods=["POST", "OPTIONS"])
 def ngo_route():
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
+
     data = request.get_json(silent=True) or {}
     lat  = data.get("lat")
     lon  = data.get("lon")
