@@ -5,6 +5,7 @@ import uuid
 sys.dont_write_bytecode = True
 from flask import Flask, request, render_template, jsonify
 from PIL import Image, ImageOps, UnidentifiedImageError
+from werkzeug.exceptions import HTTPException, RequestEntityTooLarge
 from werkzeug.utils import secure_filename
 from disease_classifier import predict
 from ngo_locator import get_contacts_by_coords, get_contacts_by_city, get_all_cities
@@ -34,6 +35,18 @@ def add_headers(response):
     response.headers["Pragma"]        = "no-cache"
     response.headers["X-Content-Type-Options"] = "nosniff"
     return response
+
+
+@app.errorhandler(RequestEntityTooLarge)
+def handle_large_upload(_error):
+    return jsonify({"error": "Image is too large. Please try a smaller photo."}), 413
+
+
+@app.errorhandler(HTTPException)
+def handle_http_error(error):
+    if request.path.startswith(("/predict", "/ngo", "/cities")):
+        return jsonify({"error": error.description or "Request failed."}), error.code
+    return error
 
 
 def allowed(filename):

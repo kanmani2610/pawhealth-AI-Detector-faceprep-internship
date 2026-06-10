@@ -38,6 +38,25 @@ document.addEventListener('DOMContentLoaded', () => {
     return window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
   }
 
+  async function readApiJson(response, fallbackMessage) {
+    const raw = await response.text();
+    const contentType = response.headers.get('content-type') || '';
+
+    if (!raw.trim()) {
+      throw new Error(`${fallbackMessage} Empty response from server.`);
+    }
+
+    if (!contentType.includes('application/json')) {
+      throw new Error(`${fallbackMessage} Server returned ${response.status || 'an invalid'} response.`);
+    }
+
+    try {
+      return JSON.parse(raw);
+    } catch (err) {
+      throw new Error(`${fallbackMessage} Server returned invalid JSON.`);
+    }
+  }
+
   function openDogScanOptions() {
     if (!isTouchPhone()) {
       galleryInput.click();
@@ -149,12 +168,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       let data = {};
       try {
-        // FIX 2: read the raw text first; if it's not valid JSON we surface
-        // the actual HTTP status instead of a confusing "could not read" error.
-        const raw = await response.text();
-        data = JSON.parse(raw);
+        data = await readApiJson(response, 'Could not read analysis result.');
       } catch (err) {
-        let msg = 'Server could not read the response.';
+        let msg = err.message || 'Could not read analysis result.';
         if (response.status === 413) msg = 'Image is too large. Please try a smaller photo.';
         else if (response.status === 500) msg = 'Server error during analysis. Try again.';
         else if (response.status === 400) msg = 'Invalid image file. Please try a different photo.';
@@ -301,6 +317,10 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('Geolocation not supported by your browser');
         return;
       }
+      if (!window.isSecureContext) {
+        showToast('Location needs HTTPS on mobile. Please search by city instead.');
+        return;
+      }
       ngoGpsBtn.textContent = 'Locating…';
       ngoGpsBtn.disabled = true;
 
@@ -427,9 +447,9 @@ closeBtn?.addEventListener('click', () => {
 
       let data;
       try {
-        data = await res.json();
+        data = await readApiJson(res, 'Could not read NGO result.');
       } catch (parseErr) {
-        ngoResults.innerHTML = `<div class="ngo-error">Server returned an invalid response. Please try again.</div>`;
+        ngoResults.innerHTML = `<div class="ngo-error">${parseErr.message || 'Server returned an invalid response. Please try again.'}</div>`;
         return;
       }
 

@@ -264,15 +264,23 @@ def _static_by_city(city_name: str) -> dict:
 
 def get_contacts_by_coords(lat: float, lon: float, max_results: int = 5) -> dict:
     """GPS-based lookup. Tries Overpass/OSM first, falls back to static DB."""
+    static = _static_by_coords(lat, lon, max_results)
+    if static.get("found"):
+        return static
+
     result = _osm_vets_by_coords(lat, lon)
     if result is not None:
         return result
     print("[ngo_locator] Overpass failed — using static DB fallback")
-    return _static_by_coords(lat, lon, max_results)
+    return static
 
 
 def get_contacts_by_city(city_name: str) -> dict:
     """City-name lookup. Geocodes via Nominatim → Overpass, falls back to static DB."""
+    static = _static_by_city(city_name)
+    if static.get("found"):
+        return static
+
     lat, lon = _geocode_city(city_name)
     if lat is not None:
         result = _osm_vets_by_coords(lat, lon)
@@ -280,7 +288,7 @@ def get_contacts_by_city(city_name: str) -> dict:
             result["city"] = city_name.title()
             return result
     print(f"[ngo_locator] OSM path failed for '{city_name}' — using static DB fallback")
-    return _static_by_city(city_name)
+    return static
 
 
 def get_all_cities() -> list:
