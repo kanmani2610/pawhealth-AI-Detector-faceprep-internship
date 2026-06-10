@@ -1,14 +1,14 @@
 """
-ngo_locator.py — Find nearby vets & animal NGOs using OpenStreetMap (Overpass API).
-100% free. No API key. No credit card. No account needed.
+ngo_locator.py - Find nearby vets and animal NGOs using OpenStreetMap.
 
-Fallback: if Overpass is unreachable, serves from local static DB.
+Fallback: if Overpass is unreachable, serve contacts from the local static DB.
 """
 
 import json, math, os, urllib.request, urllib.parse, urllib.error
 
 # ── Static DB fallback (unchanged from original) ────────────────────────────
-DB_PATH = "data/ngo_contacts.json"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "data", "ngo_contacts.json")
 _db     = None
 
 # ── Overpass API endpoint (multiple mirrors for reliability) ─────────────────

@@ -3,13 +3,9 @@ disease_classifier.py
 ---------------------
 Offline multi-class dog disease classifier.
 
-Stage 1 : MobileNetV3 binary model  →  healthy / infected
-Stage 2 : Deep feature extraction + colour/texture analysis
-          →  rule-based disease classification (no external API)
-
-Disease classes:
-  mange, ringworm, distemper, parvovirus,
-  tick_infestation, wound_injury, eye_infection, skin_infection
+Stage 1: MobileNetV3 binary model -> healthy / infected
+Stage 2: Deep feature extraction + colour/texture analysis
+         -> rule-based disease classification.
 """
 
 import os, math
@@ -20,7 +16,8 @@ from PIL import Image, ImageStat
 import numpy as np
 
 # ─── paths ────────────────────────────────────────────────────────────────────
-BINARY_MODEL_PATH = "model/dog_health_model.pth"
+BASE_DIR          = os.path.dirname(os.path.abspath(__file__))
+BINARY_MODEL_PATH = os.path.join(BASE_DIR, "model", "dog_health_model.pth")
 IMG_SIZE          = 224
 DEVICE            = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -54,7 +51,7 @@ def _load_binary():
 def _load_feature_extractor():
     """Strip the classifier head; use the 576-d features for disease logic."""
     global _feature_model
-    net = models.mobilenet_v3_small(weights=models.MobileNet_V3_Small_Weights.DEFAULT)
+    net = models.mobilenet_v3_small(weights=None)
     # Keep everything up to the adaptive pool; drop classifier
     net.classifier = nn.Identity()
     net.eval().to(DEVICE)

@@ -22,12 +22,60 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
   // ── "Scan a Dog" / "Analyse Now" / "Upload a Photo" → trigger file picker ──
-  const fileInput = document.createElement('input');
-fileInput.type = 'file';
-fileInput.accept = 'image/*';
-fileInput.capture = 'environment';
-fileInput.style.display = 'none';
-document.body.appendChild(fileInput);
+  const galleryInput = createImageInput(false);
+  const cameraInput = createImageInput(true);
+  window.openDogScanOptions = openDogScanOptions;
+
+  function createImageInput(useCamera) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    if (useCamera) input.setAttribute('capture', 'environment');
+    input.style.display = 'none';
+    document.body.appendChild(input);
+    return input;
+  }
+
+  function isTouchPhone() {
+    return window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
+  }
+
+  function openDogScanOptions() {
+    if (!isTouchPhone()) {
+      galleryInput.click();
+      return;
+    }
+
+    const existing = document.querySelector('.scan-choice-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.className = 'scan-choice-overlay';
+    overlay.innerHTML = `
+      <div class="scan-choice-sheet" role="dialog" aria-modal="true" aria-label="Choose image source">
+        <button class="scan-choice-btn" type="button" data-source="camera">Take Photo</button>
+        <button class="scan-choice-btn" type="button" data-source="gallery">Upload Photo</button>
+        <button class="scan-choice-cancel" type="button">Cancel</button>
+      </div>`;
+    document.body.appendChild(overlay);
+
+    const close = () => overlay.remove();
+    overlay.addEventListener('click', event => {
+      if (event.target === overlay || event.target.classList.contains('scan-choice-cancel')) {
+        close();
+        return;
+      }
+
+      const source = event.target.dataset.source;
+      if (source === 'camera') {
+        close();
+        cameraInput.click();
+      } else if (source === 'gallery') {
+        close();
+        galleryInput.click();
+      }
+    });
+  }
 
   const scanTriggers = document.querySelectorAll(
     '.nav-cta, .btn-primary, .btn-outline, .btn-white'
@@ -41,13 +89,17 @@ document.body.appendChild(fileInput);
       label.includes('upload') ||
       label.includes('start')
     ) {
-      btn.addEventListener('click', () => fileInput.click());
+      btn.addEventListener('click', openDogScanOptions);
     }
   });
 
   // ── File selected → POST to /predict ──
-  fileInput.addEventListener('change', async () => {
-    const file = fileInput.files[0];
+  galleryInput.addEventListener('change', handleDogImageSelected);
+  cameraInput.addEventListener('change', handleDogImageSelected);
+
+  async function handleDogImageSelected(event) {
+    const input = event.target;
+    const file = input.files[0];
     if (!file) return;
 
     window.lastUploadedDogImage = URL.createObjectURL(file);
@@ -95,8 +147,8 @@ document.body.appendChild(fileInput);
       showToast('Analysis failed');
     }
 
-    fileInput.value = '';
-  });
+    input.value = '';
+  }
 
   // ── "Contact Us" button ──
   document.querySelectorAll('.btn-pink').forEach(btn => {
@@ -378,7 +430,7 @@ function showReportCard(data) {
       </div>
 
       <div class="report-actions">
-        <button class="btn-scan-again" onclick="document.querySelector('input[type=file]').click()">
+        <button class="btn-scan-again" onclick="window.openDogScanOptions && window.openDogScanOptions()">
           Scan Another Dog
         </button>
         <button class="btn-find-ngo" onclick="document.getElementById('ngo-section') && document.getElementById('ngo-section').scrollIntoView({behavior:'smooth'})">
@@ -469,7 +521,7 @@ function showReportCard(data) {
       </div>
 
       <div class="report-actions">
-        <button class="btn-scan-again" onclick="document.querySelector('input[type=file]').click()">
+        <button class="btn-scan-again" onclick="window.openDogScanOptions && window.openDogScanOptions()">
           Scan Another Dog
         </button>
         <button class="btn-find-ngo" onclick="

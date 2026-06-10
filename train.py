@@ -1,13 +1,3 @@
-"""
-train.py — Train binary (Healthy / Infected) classifier.
-Dataset layout:
-  dataset/train/healthy/  &  dataset/train/infected/
-  dataset/valid/healthy/  &  dataset/valid/infected/
-
-To train a multi-class model in the future, add subdirectories like:
-  dataset/train/mange/  dataset/train/ringworm/  etc.
-and update NUM_CLASSES below.
-"""
 
 import os, torch, torch.nn as nn
 from torch.utils.data import DataLoader

@@ -630,6 +630,49 @@ nav {
   cursor: pointer;
 }
 
+.scan-choice-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(26, 10, 18, 0.42);
+}
+
+.scan-choice-sheet {
+  width: min(420px, 100%);
+  display: grid;
+  gap: 0.7rem;
+  padding: 1rem;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 18px 50px rgba(26, 10, 18, 0.28);
+}
+
+.scan-choice-btn,
+.scan-choice-cancel {
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.scan-choice-btn {
+  background: var(--rose);
+  color: #fff;
+}
+
+.scan-choice-cancel {
+  background: #f5f4f1;
+  color: var(--text2);
+}
+
 /* ── FOOTER ── */
 footer {
   background: #1a0a12;

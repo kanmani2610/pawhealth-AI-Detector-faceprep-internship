@@ -1,5 +1,5 @@
 """
-predict.py — MobileNetV3 binary health classifier (fully offline, no external API).
+predict.py - MobileNetV3 binary health classifier.
 Delegates disease details to disease_classifier.py after binary classification.
 """
 
@@ -10,7 +10,8 @@ from torchvision import models, transforms
 from PIL import Image
 from disease_classifier import predict as classify_disease
 
-MODEL_PATH   = "model/dog_health_model.pth"
+BASE_DIR     = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH   = os.path.join(BASE_DIR, "model", "dog_health_model.pth")
 IMG_SIZE     = 224
 DEVICE       = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
