@@ -2,6 +2,6 @@ flask
 torch
 torchvision
 Pillow
+pillow-heif
 numpy
 gunicorn
-

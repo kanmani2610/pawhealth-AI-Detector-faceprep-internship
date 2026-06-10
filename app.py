@@ -4,14 +4,21 @@ import uuid
 
 sys.dont_write_bytecode = True
 from flask import Flask, request, render_template, jsonify
+from PIL import Image, ImageOps, UnidentifiedImageError
 from werkzeug.utils import secure_filename
 from disease_classifier import predict
 from ngo_locator import get_contacts_by_coords, get_contacts_by_city, get_all_cities
 
+try:
+    from pillow_heif import register_heif_opener
+    register_heif_opener()
+except Exception:
+    pass
+
 BASE_DIR       = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLDER  = os.path.join(BASE_DIR, "static", "uploads")
-ALLOWED_EXT    = {"png", "jpg", "jpeg", "webp", "gif"}
-MAX_MB         = 10
+ALLOWED_EXT    = {"png", "jpg", "jpeg", "jfif", "webp", "gif", "bmp", "tif", "tiff", "heic", "heif"}
+MAX_MB         = 25
 
 app = Flask(__name__)
 app.config["UPLOAD_FOLDER"]      = UPLOAD_FOLDER
@@ -20,7 +27,26 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
 def allowed(filename):
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXT
+    if not filename or "." not in filename:
+        return False
+    return filename.rsplit(".", 1)[1].lower() in ALLOWED_EXT
+
+
+def save_uploaded_image(file):
+    original = secure_filename(file.filename or "")
+    if original and "." in original and not allowed(original):
+        raise ValueError("Unsupported image type")
+
+    try:
+        img = Image.open(file.stream)
+        img = ImageOps.exif_transpose(img).convert("RGB")
+    except UnidentifiedImageError:
+        raise ValueError("Could not read this image. Try JPG, PNG, WEBP, HEIC, BMP or TIFF.")
+
+    fname = f"{uuid.uuid4().hex}.jpg"
+    fpath = os.path.join(app.config["UPLOAD_FOLDER"], fname)
+    img.save(fpath, "JPEG", quality=90, optimize=True)
+    return fname, fpath
 
 
 @app.route("/")
@@ -34,17 +60,12 @@ def predict_route():
     if "file" not in request.files:
         return jsonify({"error": "No file uploaded"}), 400
     file = request.files["file"]
-    if not file.filename or not allowed(file.filename):
-        return jsonify({"error": "Invalid file"}), 400
-
-    original = secure_filename(file.filename)
-    ext      = original.rsplit(".", 1)[1].lower()
-    fname    = f"{uuid.uuid4().hex}.{ext}"
-    fpath    = os.path.join(app.config["UPLOAD_FOLDER"], fname)
-    file.save(fpath)
 
     try:
+        fname, fpath = save_uploaded_image(file)
         result = predict(fpath)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

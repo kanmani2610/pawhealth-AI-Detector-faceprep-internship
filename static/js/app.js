@@ -119,21 +119,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
+      const uploadFile = await prepareImageForUpload(file);
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', uploadFile, uploadFile.name || 'dog-photo.jpg');
 
       const response = await fetch('/predict', {
         method: 'POST',
         body: formData
       });
 
-      const data = await response.json();
+      let data = {};
+      try {
+        data = await response.json();
+      } catch (err) {
+        data = { error: response.status === 413 ? 'Image is too large. Please try a smaller photo.' : 'Server could not read the response.' };
+      }
 
-      if (data.error) {
+      if (!response.ok || data.error) {
+        const message = data.error || 'Analysis failed. Please try another image.';
         if (reportContent) {
-          reportContent.innerHTML = `<div class="report-error">Error: ${data.error}</div>`;
+          reportContent.innerHTML = `<div class="report-error">Error: ${message}</div>`;
         }
-        showToast('Error: ' + data.error);
+        showToast('Error: ' + message);
         return;
       }
 
@@ -148,6 +155,42 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     input.value = '';
+  }
+
+  function prepareImageForUpload(file) {
+    const canResize = file.type.startsWith('image/') && !/heic|heif/i.test(file.type);
+    if (!canResize || file.size <= 4 * 1024 * 1024) {
+      return Promise.resolve(file);
+    }
+
+    return new Promise(resolve => {
+      const img = new Image();
+      const objectUrl = URL.createObjectURL(file);
+
+      img.onload = () => {
+        URL.revokeObjectURL(objectUrl);
+        const maxSide = 1600;
+        const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(img.width * scale));
+        canvas.height = Math.max(1, Math.round(img.height * scale));
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(blob => {
+          if (!blob) {
+            resolve(file);
+            return;
+          }
+          resolve(new File([blob], 'dog-photo.jpg', { type: 'image/jpeg' }));
+        }, 'image/jpeg', 0.88);
+      };
+
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        resolve(file);
+      };
+
+      img.src = objectUrl;
+    });
   }
 
   // ── "Contact Us" button ──
