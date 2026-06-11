@@ -39,15 +39,34 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function readApiJson(response, fallbackMessage) {
+    // Check HTTP status FIRST — before reading the body — so server-level
+    // errors (502, 503, 504, 413 etc.) get clear messages, not parse errors.
+    if (response.status === 502 || response.status === 503) {
+      throw Object.assign(new Error('Server is starting up or overloaded — please wait 30 seconds and try again.'), { httpStatus: response.status });
+    }
+    if (response.status === 504) {
+      throw Object.assign(new Error('Request timed out on the server — try a smaller photo or retry in a moment.'), { httpStatus: response.status });
+    }
+    if (response.status === 413) {
+      throw Object.assign(new Error('Image is too large. Please try a smaller photo.'), { httpStatus: 413 });
+    }
+    if (response.status === 500) {
+      throw Object.assign(new Error('Server error during analysis. Please try again.'), { httpStatus: 500 });
+    }
+
     const raw = await response.text();
     const contentType = response.headers.get('content-type') || '';
 
     if (!raw.trim()) {
-      throw new Error(`${fallbackMessage} Empty response from server.`);
+      throw new Error(`${fallbackMessage} Empty response from server (status ${response.status}).`);
     }
 
+    // If server returned HTML (e.g. a Render/Railway error page), say so clearly
     if (!contentType.includes('application/json')) {
-      throw new Error(`${fallbackMessage} Server returned ${response.status || 'an invalid'} response.`);
+      const statusMsg = response.status >= 400
+        ? `Server error ${response.status}`
+        : 'Unexpected server response';
+      throw new Error(`${statusMsg} — please try again in a moment.`);
     }
 
     try {
@@ -142,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // FIX 1: AbortController timeout — mobile networks can be slow.
       // Without this the fetch hangs forever on a bad connection.
       const controller = new AbortController();
-      const timeoutId  = setTimeout(() => controller.abort(), 120000); // 120 s — mobile uploads are slow
+      const timeoutId  = setTimeout(() => controller.abort(), 60000); // 60 s
 
       let response;
       try {
@@ -170,15 +189,12 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         data = await readApiJson(response, 'Could not read analysis result.');
       } catch (err) {
-        let msg = err.message || 'Could not read analysis result.';
-        if (response.status === 413) msg = 'Image is too large. Please try a smaller photo.';
-        else if (response.status === 502 || response.status === 504) msg = "Server took too long — please try a smaller photo or wait a moment and retry.";
-        else if (response.status === 500) msg = "Server error during analysis. Try again."
-        else if (response.status === 400) msg = 'Invalid image file. Please try a different photo.';
+        // readApiJson already maps all HTTP status codes to clear messages
+        const msg = err.message || 'Could not read analysis result. Please try again.';
         if (reportContent) {
-          reportContent.innerHTML = `<div class="report-error">Error: ${msg}</div>`;
+          reportContent.innerHTML = `<div class="report-error">⚠️ ${msg}</div>`;
         }
-        showToast('Error: ' + msg);
+        showToast(msg);
         input.value = '';
         return;
       }

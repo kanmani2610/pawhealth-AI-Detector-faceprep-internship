@@ -1,10 +1,11 @@
 
 import multiprocessing
-timeout = 120
+workers = 1
+timeout = 120.
 keepalive = 5
-workers = max(2, multiprocessing.cpu_count())
-bind = "0.0.0.0:5000"
-accesslog  = "-"
-errorlog   = "-"
-loglevel   = "info"
-preload_app = True
+import os
+bind = f"0.0.0.0:{os.environ.get('PORT', '5000')}"
+accesslog = "-"
+errorlog  = "-"
+loglevel  = "info"
+preload_app = False
