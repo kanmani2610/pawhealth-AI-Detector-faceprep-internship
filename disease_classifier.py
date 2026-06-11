@@ -1,23 +1,3 @@
-"""
-disease_classifier.py
----------------------
-Offline multi-class dog disease classifier.
-
-Stage 1: MobileNetV3 binary model  -> healthy / infected
-Stage 2: Deep feature extraction (pretrained ImageNet weights)
-         + colour/texture analysis -> rule-based disease classification.
-
-Improvements over v1:
-  - Feature extractor now uses MobileNet_V3_Small_Weights.IMAGENET1K_V1
-    (pretrained on ImageNet) instead of random weights, giving semantically
-    meaningful feature vectors for the rule-based scorer.
-  - Scoring weights recalibrated with per-feature min-max ranges derived
-    from empirical analysis of stray dog disease image datasets, replacing
-    the original hand-picked constants.
-  - Added confidence dampening: if the top disease score is very close to
-    the second, the urgency is nudged up to avoid false reassurance.
-  - Feature energy buckets increased from 8 to 16 for finer resolution.
-"""
 
 import os, math
 import torch
@@ -26,13 +6,12 @@ from torchvision import models, transforms
 from PIL import Image, ImageStat
 import numpy as np
 
-# ─── paths ────────────────────────────────────────────────────────────────────
+
 BASE_DIR          = os.path.dirname(os.path.abspath(__file__))
 BINARY_MODEL_PATH = os.path.join(BASE_DIR, "model", "dog_health_model.pth")
 IMG_SIZE          = 224
 DEVICE            = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# ─── shared transform ─────────────────────────────────────────────────────────
 _tf = transforms.Compose([
     transforms.Resize((IMG_SIZE, IMG_SIZE)),
     transforms.ToTensor(),
@@ -40,7 +19,6 @@ _tf = transforms.Compose([
                          [0.229, 0.224, 0.225]),
 ])
 
-# ─── lazy-loaded models ───────────────────────────────────────────────────────
 _binary_model   = None
 _feature_model  = None
 _class_names    = ["healthy", "infected"]
@@ -60,12 +38,7 @@ def _load_binary():
 
 
 def _load_feature_extractor():
-    """
-    IMPROVEMENT: Use pretrained ImageNet weights instead of random weights.
-    This gives the feature vectors real semantic meaning — textures, colours,
-    and structural patterns learned from 1.2M images — making the rule-based
-    scorer far more reliable than random-weight features.
-    """
+     
     global _feature_model
     net = models.mobilenet_v3_small(
         weights=models.MobileNet_V3_Small_Weights.IMAGENET1K_V1   # <-- KEY CHANGE
